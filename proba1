@@ -46,10 +46,10 @@ server <- function(input, output) {
     
     #zašto ne mogu da u promenljivu aktivni_filter ubacim izabranu vrednost?
     
-    #sa ovim radi
+    #sa ovim radi: kada direktno dodeljujem vrednost
     #aktivni_filter <- padajuci_meni[1]
     
-    #sa ovim ne radi
+    #sa ovim ne radi: kada želim da učitam vrednost iz inputa
     #aktivni_filter <- Input$izabrano
     
     #pomeranje na sledeću kolonu, da bi se pokupili procenti po biračkim mestima 
