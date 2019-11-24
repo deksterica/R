@@ -1,0 +1,77 @@
+library(shiny)
+library(leaflet)
+library(gsheet)
+library(dplyr)
+
+#učitavanje podataka iz google sheeta
+url <- 'https://docs.google.com/spreadsheets/d/1mBipF39HP2HDKVDe6Yr25ySHnTByvY-15zghm55A6sI/edit?usp=sharing'
+podaci <- gsheet2tbl(url)
+
+#određivanje biračkih lista i opcija za prikazivanje (procenti glasalih, nevažećih i za svaku listu)
+prvi_red <- colnames(podaci)
+liste_raw <- prvi_red[13:length(prvi_red)]
+liste <- liste_raw[seq(1, length(liste_raw), 2)]
+padajuci_meni <- c(prvi_red[4], prvi_red[9], liste)
+
+#koordinate biračkih mesta za Banatsko Novo Selo (BNS)
+BNS1 <- list(lat=c(44.99062,44.9812,44.9805,44.9752,44.9772,44.9811,44.9842),lon=c(20.78413, 20.7730, 20.7758, 20.7838, 20.7890, 20.7936, 20.7945))
+BNS2 <- list(lat=c(44.9842, 44.99062, 44.9947, 45.0004, 44.9928),lon=c(20.7945, 20.78413, 20.7890, 20.7999, 20.8036))
+BNS3 <- list(lat=c(44.99062,44.9947,45.0004,45.0044,45.0053,44.9967),lon=c(20.78413,20.7890,20.7999,20.7938,20.7858,20.7736))
+BNS4 <- list(lat=c(44.99062,44.9967,44.9927,44.9866,44.9813),lon=c(20.78413, 20.7736, 20.7673, 20.7676, 20.7732))
+
+#bojanje biračkih mesta
+pal <- colorNumeric(palette = "Blues", domain = 1:100)
+
+ui <- fluidPage(
+    
+    # Application title
+    titlePanel("BNS data"),
+    
+    # Izbor parametra za prikazivanje
+    sidebarLayout(
+        sidebarPanel(
+            selectInput("izabrano", 
+                        label = "Pokaži mi:", 
+                        padajuci_meni, 
+                        selected = padajuci_meni[1])),
+        
+        
+        # prikazivanje biračkih mesta na mapi
+        mainPanel(leafletOutput("BNSdata"))
+    )
+)
+
+
+server <- function(input, output) {
+    
+    #zašto ne mogu da u promenljivu aktivni_filter ubacim izabranu vrednost?
+    
+    #sa ovim radi
+    #aktivni_filter <- padajuci_meni[1]
+    
+    #sa ovim ne radi
+    #aktivni_filter <- Input$izabrano
+    
+    #pomeranje na sledeću kolonu, da bi se pokupili procenti po biračkim mestima 
+    pozicija_aktivnog_procenta <- match(aktivni_filter, prvi_red)+1
+    aktivni_procenat <- pull(podaci, pozicija_aktivnog_procenta)
+    
+    output$BNSdata <- renderLeaflet({
+        
+        leaflet() %>% addTiles() %>% 
+            
+            addPolygons(weight = 2, lat = BNS1$lat, lng = BNS1$lon, fillColor = pal(aktivni_procenat[3]), 
+                        popup = paste("Banatsko Novo Selo 1", "<br>", aktivni_filter, "<br>", aktivni_procenat[3], "%" )) %>% 
+            
+            addPolygons(weight = 2, lat = BNS2$lat, lng = BNS2$lon, fillColor = pal(aktivni_procenat[4]), 
+                        popup = paste("Banatsko Novo Selo 2", "<br>", aktivni_filter, "<br>", aktivni_procenat[4], "%"  ))  %>% 
+            
+            addPolygons(weight = 2, lat = BNS3$lat, lng = BNS3$lon, fillColor = pal(aktivni_procenat[5]), 
+                        popup = paste("Banatsko Novo Selo 3", "<br>", aktivni_filter, "<br>", aktivni_procenat[5], "%"  )) %>%
+            
+            addPolygons(weight = 2, lat = BNS4$lat, lng = BNS4$lon, fillColor = pal(aktivni_procenat[6]), 
+                        popup = paste("Banatsko Novo Selo 4", "<br>", aktivni_filter, "<br>", aktivni_procenat[6], "%"  ))
+    })
+}
+# Run the application 
+shinyApp(ui = ui, server = server)
