@@ -34,7 +34,6 @@ ui <- fluidPage(
                         drop_down_menu, 
                         selected = drop_down_menu[1])),
         
-        
         # displaying election units on map
         mainPanel(leafletOutput("BNSdata"))
     )
@@ -43,20 +42,14 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     
-    #Why selected values can't directly be assigned to variable?
-    
-    #direct assign works 
-    # <- drop_down_menu[1]
-    
-    #but assigning of selected value does not
-    #active_filter <- Input$selected
-    
-    #moving to the next column, so to display the percentage of active filter 
-    position_of_active_percent <- match(active_filter, first_row)+1
-    active_percentage <- pull(data, position_of_active_percent)
-    
     output$BNSdata <- renderLeaflet({
         
+    active_filter <- input$selected
+ 
+    position_of_active_percent <- match(active_filter, first_row)+1
+    
+    active_percentage <- pull(data, position_of_active_percent)
+    
         leaflet() %>% addTiles() %>% 
             
             addPolygons(weight = 2, lat = BNS1$lat, lng = BNS1$lon, fillColor = pal(active_percentage[3]), 
