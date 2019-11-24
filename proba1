@@ -43,7 +43,7 @@ ui <- fluidPage(
 
 server <- function(input, output) {
     
-    #Why selected values can't diectly be assigned to variable?
+    #Why selected values can't directly be assigned to variable?
     
     #direct assign works 
     # <- drop_down_menu[1]
